@@ -91,7 +91,7 @@ mod test {
 
     #[test]
     fn test_get_paths() {
-        assert_eq!(5, fdupe::get_paths(Path::new("src").join("testdata").to_str().unwrap()).len());
+        assert_eq!(8, fdupe::get_paths(Path::new("src").join("testdata").to_str().unwrap()).len());
     }
 
     #[test]
