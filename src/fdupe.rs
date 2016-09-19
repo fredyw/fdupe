@@ -2,9 +2,29 @@ extern crate walkdir;
 extern crate unicode_segmentation;
 
 use std::cmp;
-use std::path::Path;
 use self::unicode_segmentation::UnicodeSegmentation;
 use self::walkdir::WalkDir;
+
+pub fn find_duplicates(dir: &str, expected_dist: usize) {
+    let paths = get_paths(dir);
+    for i in 0..paths.len() {
+        let mut duplicates: Vec<&NamePath> = vec![];
+        let ref path1 = paths[i];
+        for j in (i + 1)..paths.len() {
+            let ref path2 = paths[j];
+            let dist = edit_distance(&path1.name, &path2.name);
+            if dist <= expected_dist {
+                duplicates.push(path2);
+            }
+        }
+        println!("-----------------------------------------------------------------------");
+        println!("{} --> {}", path1.name, path1.path);
+        println!("-----------------------------------------------------------------------");
+        for dupe in duplicates {
+            println!("- Duplicate: {} --> {}", dupe.name, dupe.path);
+        }
+    }
+}
 
 fn edit_distance(str1: &str, str2: &str) -> usize {
     let str1_vec = UnicodeSegmentation::graphemes(str1, true).collect::<Vec<&str>>();
@@ -70,5 +90,10 @@ mod test {
     #[test]
     fn test_get_paths() {
         assert_eq!(5, fdupe::get_paths(Path::new("src").join("testdata").to_str().unwrap()).len());
+    }
+
+    #[test]
+    fn test_find_duplicates() {
+        fdupe::find_duplicates(Path::new("src").join("testdata").to_str().unwrap(), 2);
     }
 }
