@@ -31,17 +31,32 @@ fn edit_distance(str1: &str, str2: &str) -> usize {
     dp[str1_size - 1 as usize][str2_size - 1 as usize]
 }
 
-fn get_paths<'a>(dir: &str) {
+#[derive(Debug)]
+struct NamePath {
+    name: String,
+    path: String,
+}
+
+fn get_paths<'a>(dir: &str) -> Vec<NamePath> {
+    let mut name_paths: Vec<NamePath> = vec![];
     let walker = WalkDir::new(dir).into_iter();
     for entry in walker.filter_map(|e| e.ok()) {
         let path = entry.path();
-        println!("{:?}", path.file_name())
+        if path.is_file() {
+            let name_path = NamePath{
+                name: path.file_name().unwrap().to_str().unwrap().to_string(),
+                path: path.to_str().unwrap().to_string(),
+            };
+            name_paths.push(name_path);
+        }
     }
+    name_paths
 }
 
 #[cfg(test)]
 mod test {
     use fdupe;
+    use std::path::Path;
 
     #[test]
     fn test_edit_distance() {
@@ -54,6 +69,6 @@ mod test {
 
     #[test]
     fn test_get_paths() {
-        fdupe::get_paths("/tmp");
+        assert_eq!(5, fdupe::get_paths(Path::new("src").join("testdata").to_str().unwrap()).len());
     }
 }
