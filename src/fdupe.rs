@@ -94,6 +94,6 @@ mod test {
 
     #[test]
     fn test_find_duplicates() {
-        fdupe::find_duplicates(Path::new("src").join("testdata").to_str().unwrap(), 2);
+        fdupe::find_duplicates(Path::new("src").join("testdata").to_str().unwrap(), 3);
     }
 }
