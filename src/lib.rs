@@ -1,1 +1,1 @@
-mod fdupe;
+pub mod fdupe;

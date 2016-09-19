@@ -5,7 +5,7 @@ use std::cmp;
 use self::unicode_segmentation::UnicodeSegmentation;
 use self::walkdir::WalkDir;
 
-pub fn find_duplicates(dir: &str, expected_dist: usize) {
+pub fn find_duplicates(dir: &str, expected_dist: i32) {
     let paths = get_paths(dir);
     for i in 0..paths.len() {
         let mut duplicates: Vec<&NamePath> = vec![];
@@ -17,16 +17,18 @@ pub fn find_duplicates(dir: &str, expected_dist: usize) {
                 duplicates.push(path2);
             }
         }
-        println!("-----------------------------------------------------------------------");
-        println!("{} --> {}", path1.name, path1.path);
-        println!("-----------------------------------------------------------------------");
-        for dupe in duplicates {
-            println!("- Duplicate: {} --> {}", dupe.name, dupe.path);
+        if duplicates.len() > 0 {
+            println!("-----------------------------------------------------------------------");
+            println!("* {} --> {} *", path1.name, path1.path);
+            println!("-----------------------------------------------------------------------");
+            for dupe in duplicates {
+                println!("- Possible duplicate: {} --> {}", dupe.name, dupe.path);
+            }
         }
     }
 }
 
-fn edit_distance(str1: &str, str2: &str) -> usize {
+fn edit_distance(str1: &str, str2: &str) -> i32 {
     let str1_vec = UnicodeSegmentation::graphemes(str1, true).collect::<Vec<&str>>();
     let str2_vec = UnicodeSegmentation::graphemes(str2, true).collect::<Vec<&str>>();
     let str1_size = str1_vec.len() + 1;
@@ -48,7 +50,7 @@ fn edit_distance(str1: &str, str2: &str) -> usize {
             }
         }
     }
-    dp[str1_size - 1 as usize][str2_size - 1 as usize]
+    dp[str1_size - 1 as usize][str2_size - 1 as usize] as i32
 }
 
 #[derive(Debug)]
@@ -63,6 +65,7 @@ fn get_paths<'a>(dir: &str) -> Vec<NamePath> {
     for entry in walker.filter_map(|e| e.ok()) {
         let path = entry.path();
         if path.is_file() {
+            // TODO: deal with unwrap
             let name_path = NamePath{
                 name: path.file_name().unwrap().to_str().unwrap().to_string(),
                 path: path.to_str().unwrap().to_string(),

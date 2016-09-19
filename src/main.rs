@@ -55,5 +55,5 @@ fn main() {
         }
         None => { panic!("-n is a required option") }
     };
-    // TODO
+    fdupe::fdupe::find_duplicates(&dir, n_ed);
 }
