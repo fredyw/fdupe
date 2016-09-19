@@ -65,7 +65,6 @@ fn get_paths<'a>(dir: &str) -> Vec<NamePath> {
     for entry in walker.filter_map(|e| e.ok()) {
         let path = entry.path();
         if path.is_file() {
-            // TODO: deal with unwrap
             let name_path = NamePath{
                 name: path.file_name().unwrap().to_str().unwrap().to_string(),
                 path: path.to_str().unwrap().to_string(),
