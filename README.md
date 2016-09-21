@@ -13,5 +13,6 @@ Usage: ./fdupe [options]
 Options:
     -n EDIT_DISTANCE    set number of edit distace
     -d DIRECTORY        set directory where to look for duplicate files
+    -t FILTER           set the file name regex filter
     -h, --help          print this help menu
 ```    
