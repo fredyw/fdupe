@@ -17,6 +17,7 @@ fn main() {
     let mut opts = Options::new();
     opts.optopt("n", "", "set number of edit distace", "EDIT_DISTANCE");
     opts.optopt("d", "", "set directory where to look for duplicate files", "DIRECTORY");
+    opts.optopt("t", "", "set the file name regex filter", "FILTER");
     opts.optflag("h", "help", "print this help menu");
     if args.len() == 1 {
         print_usage(&program, opts);
@@ -55,5 +56,6 @@ fn main() {
         }
         None => { panic!("-n is a required option") }
     };
-    fdupe::fdupe::find_duplicates(&dir, n_ed);
+    let filter = matches.opt_str("t");
+    fdupe::fdupe::find_duplicates(&dir, n_ed, filter);
 }

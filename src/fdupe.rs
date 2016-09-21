@@ -5,8 +5,8 @@ use std::cmp;
 use self::unicode_segmentation::UnicodeSegmentation;
 use self::walkdir::WalkDir;
 
-pub fn find_duplicates(dir: &str, expected_dist: i32) {
-    let paths = get_paths(dir);
+pub fn find_duplicates(dir: &str, expected_dist: i32, filter: Option<String>) {
+    let paths = get_paths(dir, filter);
     for i in 0..paths.len() {
         let mut duplicates: Vec<&NamePath> = vec![];
         let ref path1 = paths[i];
@@ -59,7 +59,7 @@ struct NamePath {
     path: String,
 }
 
-fn get_paths<'a>(dir: &str) -> Vec<NamePath> {
+fn get_paths<'a>(dir: &str, filter: Option<String>) -> Vec<NamePath> {
     let mut name_paths: Vec<NamePath> = vec![];
     let walker = WalkDir::new(dir).into_iter();
     for entry in walker.filter_map(|e| e.ok()) {
@@ -91,11 +91,13 @@ mod test {
 
     #[test]
     fn test_get_paths() {
-        assert_eq!(8, fdupe::get_paths(Path::new("src").join("testdata").to_str().unwrap()).len());
+        assert_eq!(8, fdupe::get_paths(
+            Path::new("src").join("testdata").to_str().unwrap(), Option::None).len());
     }
 
     #[test]
     fn test_find_duplicates() {
-        fdupe::find_duplicates(Path::new("src").join("testdata").to_str().unwrap(), 3);
+        fdupe::find_duplicates(
+            Path::new("src").join("testdata").to_str().unwrap(), 3, Option::None);
     }
 }
