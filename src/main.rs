@@ -15,9 +15,9 @@ fn main() {
     let program = args[0].clone();
 
     let mut opts = Options::new();
-    opts.optopt("n", "", "set number of edit distace", "EDIT_DISTANCE");
-    opts.optopt("d", "", "set directory where to look for duplicate files", "DIRECTORY");
-    opts.optopt("t", "", "set the file name regex filter", "FILTER");
+    opts.optopt("n", "num", "set number of edit distace", "NUM");
+    opts.optopt("d", "dir", "set directory where to look for duplicate files", "DIRECTORY");
+    opts.optopt("t", "filter", "set the file name regex filter in the directory", "FILTER");
     opts.optflag("h", "help", "print this help menu");
     if args.len() == 1 {
         print_usage(&program, opts);
