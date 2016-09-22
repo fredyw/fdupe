@@ -1,13 +1,19 @@
 extern crate fdupe;
 extern crate getopts;
 
-use getopts::Options;
 use std::env;
+use std::process;
 use std::path::Path;
+use getopts::Options;
 
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {} [options]", program);
     print!("{}", opts.usage(&brief));
+}
+
+fn err_and_exit(message: &str) {
+    println!("Error: {}", message);
+    process::exit(1);
 }
 
 fn main() {
