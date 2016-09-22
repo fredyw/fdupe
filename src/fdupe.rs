@@ -3,12 +3,13 @@ extern crate unicode_segmentation;
 extern crate regex;
 
 use std::cmp::min;
+use std::error::Error;
 use self::unicode_segmentation::UnicodeSegmentation;
 use self::walkdir::WalkDir;
 use self::regex::Regex;
 
-pub fn find_duplicates(dir: &str, expected_dist: i32, filter: Option<String>) {
-    let paths = get_paths(dir, filter);
+pub fn find_duplicates(dir: &str, expected_dist: i32, filter: Option<String>) -> Result<(), String> {
+    let paths = try!(get_paths(dir, filter));
     for i in 0..paths.len() {
         let mut duplicates: Vec<&NamePath> = vec![];
         let ref path1 = paths[i];
@@ -28,6 +29,7 @@ pub fn find_duplicates(dir: &str, expected_dist: i32, filter: Option<String>) {
             }
         }
     }
+    Ok(())
 }
 
 fn edit_distance(str1: &str, str2: &str) -> i32 {
@@ -61,17 +63,21 @@ struct NamePath {
     path: String,
 }
 
-fn get_paths(dir: &str, filter: Option<String>) -> Vec<NamePath> {
+fn get_paths(dir: &str, filter: Option<String>) -> Result<Vec<NamePath>, String> {
     let mut name_paths: Vec<NamePath> = vec![];
     let walker = WalkDir::new(dir).into_iter();
     for entry in walker.filter_map(|e| e.ok()) {
         let path = entry.path();
         if path.is_file() {
+            // TODO: don't use unwrap
             let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
             let file_path = path.to_str().unwrap().to_string();
             match filter {
                 Some(ref regex) => {
-                    let re = Regex::new(regex).unwrap();
+                    let re = match Regex::new(regex) {
+                        Ok(regex) => { regex }
+                        Err(err) => { return Err(err.description().to_string()) }
+                    };
                     if re.is_match(&file_name) {
                         let name_path = NamePath{
                             name: file_name,
@@ -90,7 +96,7 @@ fn get_paths(dir: &str, filter: Option<String>) -> Vec<NamePath> {
             }
         }
     }
-    name_paths
+    Ok(name_paths)
 }
 
 #[cfg(test)]
@@ -110,11 +116,12 @@ mod test {
     #[test]
     fn test_get_paths() {
         assert_eq!(8, fdupe::get_paths(
-            Path::new("src").join("testdata").to_str().unwrap(), Option::None).len());
+            Path::new("src").join("testdata").to_str().unwrap(),
+            Option::None).unwrap().len());
 
         assert_eq!(5, fdupe::get_paths(
             Path::new("src").join("testdata").to_str().unwrap(),
-                Option::Some(String::from("test.*"))).len());
+                Option::Some(String::from("test.*"))).unwrap().len());
     }
 
     #[test]

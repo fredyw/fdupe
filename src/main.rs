@@ -81,5 +81,11 @@ fn main() {
         }
     };
     let filter = matches.opt_str("t");
-    fdupe::fdupe::find_duplicates(&dir, n_ed, filter);
+    match fdupe::fdupe::find_duplicates(&dir, n_ed, filter) {
+        Ok(()) => {}
+        Err(err) => {
+            err_and_exit(&err);
+            return
+        }
+    }
 }
