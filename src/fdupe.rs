@@ -69,9 +69,19 @@ fn get_paths(dir: &str, filter: Option<String>) -> Result<Vec<NamePath>, String>
     for entry in walker.filter_map(|e| e.ok()) {
         let path = entry.path();
         if path.is_file() {
-            // TODO: don't use unwrap
-            let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
-            let file_path = path.to_str().unwrap().to_string();
+            let file_name = match path.file_name() {
+                Some(f1) => {
+                    match f1.to_str() {
+                        Some(f2) => { f2.to_string() }
+                        None => { return Err(String::from("File name does not exist")) }
+                    }
+                }
+                None => { return Err(String::from("File name does not exist")) }
+            };
+            let file_path = match path.to_str() {
+                Some(p) => { p.to_string() }
+                None => { return Err(String::from("Path does not exist")) }  
+            };
             match filter {
                 Some(ref regex) => {
                     let re = match Regex::new(regex) {
@@ -126,11 +136,17 @@ mod test {
 
     #[test]
     fn test_find_duplicates() {
-        fdupe::find_duplicates(
-            Path::new("src").join("testdata").to_str().unwrap(), 3, Option::None);
+        match fdupe::find_duplicates(
+            Path::new("src").join("testdata").to_str().unwrap(), 3, Option::None) {
+            Ok(()) => {}
+            Err(err) => { panic!(err) }
+        }
 
-        fdupe::find_duplicates(
+        match fdupe::find_duplicates(
             Path::new("src").join("testdata").to_str().unwrap(), 3,
-                Option::Some(String::from("test.*")));
+                Option::Some(String::from("test.*"))) {
+            Ok(()) => {}
+            Err(err) => { panic!(err) }
+        }
     }
 }
