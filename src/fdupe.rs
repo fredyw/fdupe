@@ -1,15 +1,18 @@
-extern crate walkdir;
-extern crate unicode_segmentation;
 extern crate regex;
+extern crate unicode_segmentation;
+extern crate walkdir;
 
-use std::cmp::min;
-use std::error::Error;
+use self::regex::Regex;
 use self::unicode_segmentation::UnicodeSegmentation;
 use self::walkdir::WalkDir;
-use self::regex::Regex;
+use std::cmp::min;
 
-pub fn find_duplicates(dir: &str, expected_dist: i32, filter: Option<String>) -> Result<(), String> {
-    let paths = try!(get_paths(dir, filter));
+pub fn find_duplicates(
+    dir: &str,
+    expected_dist: u32,
+    filter: Option<String>,
+) -> Result<(), String> {
+    let paths = get_paths(dir, filter)?;
     for i in 0..paths.len() {
         let mut duplicates: Vec<&NamePath> = vec![];
         let ref path1 = paths[i];
@@ -32,7 +35,7 @@ pub fn find_duplicates(dir: &str, expected_dist: i32, filter: Option<String>) ->
     Ok(())
 }
 
-fn edit_distance(str1: &str, str2: &str) -> i32 {
+fn edit_distance(str1: &str, str2: &str) -> u32 {
     let str1_vec = UnicodeSegmentation::graphemes(str1, true).collect::<Vec<&str>>();
     let str2_vec = UnicodeSegmentation::graphemes(str2, true).collect::<Vec<&str>>();
     let str1_size = str1_vec.len() + 1;
@@ -47,14 +50,11 @@ fn edit_distance(str1: &str, str2: &str) -> i32 {
             } else if str1_vec[i - 1] == str2_vec[j - 1] {
                 dp[i][j] = dp[i - 1][j - 1];
             } else {
-                dp[i][j] = 1 + min(
-                    dp[i][j - 1],
-                    min(dp[i - 1][j],
-                        dp[i - 1][j - 1]));
+                dp[i][j] = 1 + min(dp[i][j - 1], min(dp[i - 1][j], dp[i - 1][j - 1]));
             }
         }
     }
-    dp[str1_size - 1 as usize][str2_size - 1 as usize] as i32
+    dp[str1_size - 1usize][str2_size - 1usize] as u32
 }
 
 #[derive(Debug)]
@@ -70,34 +70,32 @@ fn get_paths(dir: &str, filter: Option<String>) -> Result<Vec<NamePath>, String>
         let path = entry.path();
         if path.is_file() {
             let file_name = match path.file_name() {
-                Some(f1) => {
-                    match f1.to_str() {
-                        Some(f2) => { f2.to_string() }
-                        None => { return Err(String::from("File name does not exist")) }
-                    }
-                }
-                None => { return Err(String::from("File name does not exist")) }
+                Some(f1) => match f1.to_str() {
+                    Some(f2) => f2.to_string(),
+                    None => return Err(String::from("File name does not exist")),
+                },
+                None => return Err(String::from("File name does not exist")),
             };
             let file_path = match path.to_str() {
-                Some(p) => { p.to_string() }
-                None => { return Err(String::from("Path does not exist")) }  
+                Some(p) => p.to_string(),
+                None => return Err(String::from("Path does not exist")),
             };
             match filter {
                 Some(ref regex) => {
                     let re = match Regex::new(regex) {
-                        Ok(regex) => { regex }
-                        Err(err) => { return Err(err.description().to_string()) }
+                        Ok(regex) => regex,
+                        Err(err) => return Err(err.to_string()),
                     };
                     if re.is_match(&file_name) {
-                        let name_path = NamePath{
+                        let name_path = NamePath {
                             name: file_name,
                             path: file_path,
                         };
-                        name_paths.push(name_path); 
-                    } 
+                        name_paths.push(name_path);
+                    }
                 }
                 None => {
-                    let name_path = NamePath{
+                    let name_path = NamePath {
                         name: file_name,
                         path: file_path,
                     };
@@ -125,28 +123,49 @@ mod test {
 
     #[test]
     fn test_get_paths() {
-        assert_eq!(8, fdupe::get_paths(
-            Path::new("src").join("testdata").to_str().unwrap(),
-            Option::None).unwrap().len());
+        assert_eq!(
+            8,
+            fdupe::get_paths(
+                Path::new("src").join("testdata").to_str().unwrap(),
+                Option::None
+            )
+            .unwrap()
+            .len()
+        );
 
-        assert_eq!(5, fdupe::get_paths(
-            Path::new("src").join("testdata").to_str().unwrap(),
-                Option::Some(String::from("test.*"))).unwrap().len());
+        assert_eq!(
+            5,
+            fdupe::get_paths(
+                Path::new("src").join("testdata").to_str().unwrap(),
+                Option::Some(String::from("test.*"))
+            )
+            .unwrap()
+            .len()
+        );
     }
 
     #[test]
     fn test_find_duplicates() {
         match fdupe::find_duplicates(
-            Path::new("src").join("testdata").to_str().unwrap(), 3, Option::None) {
-            Ok(()) => {}
-            Err(err) => { panic!(err) }
+            Path::new("src").join("testdata").to_str().unwrap(),
+            3,
+            Option::None,
+        ) {
+            Err(err) => {
+                panic!("{}", err)
+            }
+            _ => {}
         }
 
         match fdupe::find_duplicates(
-            Path::new("src").join("testdata").to_str().unwrap(), 3,
-                Option::Some(String::from("test.*"))) {
-            Ok(()) => {}
-            Err(err) => { panic!(err) }
+            Path::new("src").join("testdata").to_str().unwrap(),
+            3,
+            Option::Some(String::from("test.*")),
+        ) {
+            Err(err) => {
+                panic!("{}", err)
+            }
+            _ => {}
         }
     }
 }

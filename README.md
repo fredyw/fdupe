@@ -8,11 +8,12 @@ cargo build
 
 ### Usage
 ```
-Usage: ./fdupe [options]
+Usage: fdupe [OPTIONS] --dir <DIR> --num <NUM>
 
 Options:
-    -n EDIT_DISTANCE    set number of edit distace
-    -d DIRECTORY        set directory where to look for duplicate files
-    -t FILTER           set the file name regex filter
-    -h, --help          print this help menu
+  -d, --dir <DIR>        Directory where to look for duplicate files
+  -f, --filter <FILTER>  File name regex filter in the directory
+  -n, --num <NUM>        Number of edit distance
+  -h, --help             Print help
+  -V, --version          Print version
 ```    
